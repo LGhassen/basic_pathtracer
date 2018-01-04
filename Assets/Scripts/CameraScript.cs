@@ -48,7 +48,7 @@ public class CameraScript : MonoBehaviour {
 			aparentTransform.eulerAngles = new Vector3(pitch, yaw, 0.0f);
 
 			totalFrames = 0;
-			currentSamples = 5;
+			currentSamples = 2;
 		}
 		else
 		{

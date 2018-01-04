@@ -51,6 +51,7 @@
      <Compile Include="Assets\Scripts\Tools.cs" />
      <None Include="Assets\Shaders\CustomCornellBox.cginc" />
      <None Include="Assets\Shaders\ScreenSpaceQuad.shader" />
+     <None Include="Assets\Shaders\CustomCornellBoxSimpleScene.cginc" />
  <Reference Include="UnityEngine.UI">
  <HintPath>E:/UnityLast/Editor/Data/UnityExtensions/Unity/GUISystem/UnityEngine.UI.dll</HintPath>
  </Reference>
