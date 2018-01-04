@@ -79,7 +79,6 @@ Shader "basic_raytracer/ScreenSpaceQuadPathTrace" {
     			float test = b * b - 4.0 * a * c;
 
     			float u = (test < 0) ? -1.0 : (-b - sqrt(test)) / (2.0 * a);
-
     			//if inside glass ball, epsilon test and take other value
     			{
     				u = (u <0.01 && iSphere.material == GLASS) ? (-b + sqrt(test)) / (2.0 * a) : u;
@@ -217,12 +216,10 @@ Shader "basic_raytracer/ScreenSpaceQuadPathTrace" {
 					float3 norm=0.0;
 					float  minHitDist 	= 1e9; //initialized to infinity
 					int oldHit = lastHit;
-
 					lastHit = intersect (rayDir, cameraPosition, lastHit, norm, minHitDist);
 
 					if (lastHit == -1.0)
 						return float3(0.0,0.0,0.0);
-
 
 					float3 hitPoint = (minHitDist * rayDir) + cameraPosition;
 					cameraPosition= hitPoint;
@@ -246,6 +243,7 @@ Shader "basic_raytracer/ScreenSpaceQuadPathTrace" {
 							finalColor += (objects[LIGHTSOURCE_INDEX].emission * clamp(dot(randomLightDir, norm),0.0,1.0) * omega) / PI * aggregateColor * objects[lastHit].color ;
 						}
 
+						finalColor+= (objects[lastHit].emission) * aggregateColor * (float3(1.4,1.4,1.4) / objects[LIGHTSOURCE_INDEX].emission);
 						aggregateColor*=objects[lastHit].color;
 
 #else
