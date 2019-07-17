@@ -16,7 +16,7 @@ Shader "basic_raytracer/ScreenSpaceQuadPathTrace" {
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
-            #pragma target 5.0
+            #pragma target 3.0
             #include "UnityCG.cginc"
 
             #define PI 3.14159265359
@@ -30,9 +30,10 @@ Shader "basic_raytracer/ScreenSpaceQuadPathTrace" {
 
             uniform sampler2D _MainTex;
 
-            uniform int MAX_DEPTH;
-            uniform int SAMPLES;
-            uniform int TotalFrames;
+            uniform float MAX_DEPTH;
+            uniform float SAMPLES;
+			uniform float SUPERSAMPLING_FACTOR;
+            uniform float TotalFrames;
             uniform float2 Resolution;
 
 			float seed = 0;
@@ -62,29 +63,27 @@ Shader "basic_raytracer/ScreenSpaceQuadPathTrace" {
             	float dimension;  //radius if sphere, half-diameter if cube
             	float3 color;
             	float3 emission;
-            	int material;
-            	int type;        //sphere or cube
+            	float material;
+            	float type;        //sphere or cube
             };
-
 
             #include "CustomCornellBox.cginc"	//scene setup from include file
 
-			float intersectSphere(object iSphere, float3 rayDir, float3 rayOrigin)
+			inline float intersectSphere(object iSphere, float3 rayDir, float3 rayOrigin)
 			{
     			// The line passes through p1 and p2:
     			// p3 is the sphere center
     			float a = dot(rayDir, rayDir);
     			float b = 2.0 * dot(rayDir, rayOrigin - iSphere.position);
-    			float c = dot(iSphere.position, iSphere.position) + dot(rayOrigin, rayOrigin) - 2.0 * dot(iSphere.position, rayOrigin) - iSphere.dimension * iSphere.dimension;
-    			float test = b * b - 4.0 * a * c;
+    			float c = dot(iSphere.position, iSphere.position) + dot(rayOrigin, rayOrigin) - (2.0 * dot(iSphere.position, rayOrigin)) - (iSphere.dimension * iSphere.dimension);
+    			float test = (b * b) - (4.0 * a * c);
 
-    			float u = (test < 0) ? -1.0 : (-b - sqrt(test)) / (2.0 * a);
+    			float u = (test < 0.0) ? -1.0 : (-b - sqrt(test)) / (2.0 * a);
     			//if inside glass ball, epsilon test and take other value
     			{
     				u = (u <0.01 && iSphere.material == GLASS) ? (-b + sqrt(test)) / (2.0 * a) : u;
     				u = (u <0.01 && iSphere.material == GLASS) ? -1.0 : u;
     			}
-
     			return u;
 			}
 
@@ -137,18 +136,17 @@ Shader "basic_raytracer/ScreenSpaceQuadPathTrace" {
 				else
 					return -1.0;
 
-  				//return ;
 			}
 
-			int intersect (float3 rayDir, float3 cameraPosition, int lastHit, out float3 norm, out float minHitDist)
+			float intersect (float3 rayDir, float3 cameraPosition, float lastHit, out float3 norm, out float minHitDist)
 			{
-				norm=0.0;
+				norm=float3(0.0,0.0,0.0);
 				minHitDist 	= 1e9; //initialized to infinity
 
 				float hitDist 	 	= -1.0;
-				int   objectHitIndex=-1;
+				float objectHitIndex= -1;
 
-				for (int i=0;i<NUMBER_OF_OBJECTS;i++)
+				for (float i=0.0;i<NUMBER_OF_OBJECTS;i++)
 				{
 					if (objects[i].type == SPHERE)
 					{
@@ -157,11 +155,17 @@ Shader "basic_raytracer/ScreenSpaceQuadPathTrace" {
 						//if hit and closer than the previous hits
 						//in the case of glass allow self intersection check on next iteration (path inside glass object)
 						if ((hitDist > -1.0) && (hitDist <= minHitDist) && (i != lastHit  ||  objects[i].material == GLASS))
+						//if ((hitDist > -1.0))
+						//if ((hitDist > -1.0))
 						{
-							norm = (hitDist * rayDir + cameraPosition) - objects[i].position;
-							norm = normalize(norm);
-							minHitDist = hitDist;
-							objectHitIndex = i;
+							//if ((hitDist <= minHitDist) && (i != lastHit  ||  objects[i].material == GLASS))
+							//if ((hitDist <= minHitDist))// && (i != lastHit  ||  objects[i].material == GLASS))
+							{
+								norm = ((hitDist * rayDir) + cameraPosition) - objects[i].position;
+								norm = normalize(norm);
+								minHitDist = hitDist;
+								objectHitIndex = i;
+							}
 						}
 					}
 					else		//BOXES
@@ -189,7 +193,7 @@ Shader "basic_raytracer/ScreenSpaceQuadPathTrace" {
 							minHitDist = hitDist;
 							objectHitIndex = i;
 						}
-					}
+}
 				}
 
 				return objectHitIndex;
@@ -209,17 +213,18 @@ Shader "basic_raytracer/ScreenSpaceQuadPathTrace" {
 			{
 				float3 finalColor = float3(0.0,0.0,0.0);
 				float3 aggregateColor = float3(1.0,1.0,1.0);
-				int lastHit=-1;
+				float  lastHit=-1;
 
-				for(int depth=0;depth<MAX_DEPTH;depth++)
+				for(float depth=0.0;depth<MAX_DEPTH;depth++)
 				{
-					float3 norm=0.0;
+					float3 norm=float3(0.0,0.0,0.0);
 					float  minHitDist 	= 1e9; //initialized to infinity
-					int oldHit = lastHit;
 					lastHit = intersect (rayDir, cameraPosition, lastHit, norm, minHitDist);
 
 					if (lastHit == -1.0)
+					{
 						return float3(0.0,0.0,0.0);
+					}
 
 					float3 hitPoint = (minHitDist * rayDir) + cameraPosition;
 					cameraPosition= hitPoint;
@@ -298,32 +303,34 @@ Shader "basic_raytracer/ScreenSpaceQuadPathTrace" {
 							 	rayDir = tdir;
 							}
 						}
-					}
+}
 				}
-
 				return (finalColor);
 			}
 
 
 
-            float4 frag(v2f i): COLOR
+            float4 frag(v2f IN): COLOR
             {
-				float3 rayDir=normalize(i.view_dir);
+				float3 rayDir=normalize(IN.view_dir);
 
-				float2 pixelCoords = (i.uv) * Resolution.yx;
+				float2 pixelCoords = (IN.uv) * Resolution.yx;
 
 				float3 col=float3(0.0,0.0,0.0);
 
 				seed = _Time.x + Resolution.y * pixelCoords.x / Resolution.x + pixelCoords.y / Resolution.y;
 
-				for (int j=0;j<SAMPLES;j++)
+				//for (float i=0.0;i<SUPERSAMPLING_FACTOR*SUPERSAMPLING_FACTOR;i++)  //write an actual function for this
 				{
-					col+=getColor(rayDir, _WorldSpaceCameraPos.xyz);
+					for (float j=0.0;j<SAMPLES;j++)
+					{
+						col+=getColor(rayDir, _WorldSpaceCameraPos.xyz);
+					}
 				}
 
 				col = col/float(SAMPLES);
 
-				float2 uv = i.uv;
+				float2 uv = IN.uv;
 
 				float3 prevFrame = tex2D(_MainTex, uv);
 				col = (col + prevFrame * float(TotalFrames) ) / float(TotalFrames + 1);

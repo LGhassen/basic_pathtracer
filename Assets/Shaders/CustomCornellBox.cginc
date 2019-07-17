@@ -2,7 +2,7 @@
 #define NUMBER_OF_OBJECTS 12
 #define EXPLICIT_LIGHT_SAMPLING   //better used with small lights
 #define LIGHTSOURCE_INDEX 6 //for explicit light sampling
-static const object objects[NUMBER_OF_OBJECTS]=
+static object objects[NUMBER_OF_OBJECTS]=
 {
 	{float3(-76645.1, 0.0, 64312.8),1e5,float3(0.75,0.26,0.26),float3(0.0,0.0,0.0), DIFFUSE, SPHERE}, //left
 	{float3(76645.1, 0.0, -64312.8),1e5,float3(0.26,0.75,0.26),float3(0.0,0.0,0.0), DIFFUSE, SPHERE}, //right

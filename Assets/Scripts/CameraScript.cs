@@ -123,8 +123,10 @@ public class CameraScript : MonoBehaviour {
 
 
 		PathTracerMaterial.SetTexture("_MainTex",copyBuffer);
-		Graphics.Blit (null,renderBuffer, PathTracerMaterial);
-		Graphics.CopyTexture (renderBuffer,copyBuffer); //more efficient?
-		Graphics.Blit (renderBuffer,dest);
-	}
+        Graphics.Blit (null,renderBuffer, PathTracerMaterial);
+        Graphics.Blit(renderBuffer, copyBuffer);
+        Graphics.Blit (renderBuffer,dest);
+
+        //Graphics.Blit(null, dest, PathTracerMaterial);
+    }
 }

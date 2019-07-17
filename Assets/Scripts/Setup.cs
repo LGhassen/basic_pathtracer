@@ -44,18 +44,21 @@ public class Setup : MonoBehaviour {
 				Debug.Log ("screen resolution: " + _resolution.ToString ());
 				PathTracerMaterial.SetInt ("SAMPLES", samples);
 				PathTracerMaterial.SetInt ("MAX_DEPTH", bounces);
-			}
+                PathTracerMaterial.SetFloat("SUPERSAMPLING_FACTOR", supersamplingFactor);
+            }
 
-			renderBuffer = new RenderTexture ((int) (Screen.width * supersamplingFactor), (int) (Screen.height * supersamplingFactor) , 0, RenderTextureFormat.ARGB32);
-			renderBuffer.anisoLevel = 0;
+            renderBuffer = new RenderTexture ((int) (Screen.width * supersamplingFactor), (int) (Screen.height * supersamplingFactor) , 0, RenderTextureFormat.ARGB32);
+            //renderBuffer = new RenderTexture((int)(Screen.width), (int)(Screen.height), 0, RenderTextureFormat.ARGB32);
+            renderBuffer.anisoLevel = 0;
 			renderBuffer.autoGenerateMips = false;
 			renderBuffer.filterMode = FilterMode.Trilinear;
 			renderBuffer.useMipMap = false;
 
 			renderBuffer.Create ();
 
-			copyBuffer = new RenderTexture ((int) (Screen.width * supersamplingFactor), (int) (Screen.height * supersamplingFactor), 0, RenderTextureFormat.ARGB32);
-			copyBuffer.anisoLevel = 0;
+            copyBuffer = new RenderTexture ((int) (Screen.width * supersamplingFactor), (int) (Screen.height * supersamplingFactor), 0, RenderTextureFormat.ARGB32);
+            //copyBuffer = new RenderTexture((int)(Screen.width), (int)(Screen.height), 0, RenderTextureFormat.ARGB32);
+            copyBuffer.anisoLevel = 0;
 			copyBuffer.autoGenerateMips = false;
 			copyBuffer.filterMode = FilterMode.Trilinear;
 			copyBuffer.useMipMap = false;
@@ -102,13 +105,15 @@ public class Setup : MonoBehaviour {
 
 	void SaveToPNG()
 	{
-		Texture2D screenshot = new Texture2D((int) (Screen.width * supersamplingFactor), (int) (Screen.height * supersamplingFactor), TextureFormat.RGB24, false);
+        Texture2D screenshot = new Texture2D((int) (Screen.width * supersamplingFactor), (int) (Screen.height * supersamplingFactor), TextureFormat.RGB24, false);
+        //Texture2D screenshot = new Texture2D((int)(Screen.width), (int)(Screen.height), TextureFormat.RGB24, false);
 
-		RenderTexture.active = copyBuffer;
-		screenshot.ReadPixels( new Rect(0, 0, (int) (Screen.width * supersamplingFactor), (int) (Screen.height * supersamplingFactor)), 0, 0);
+        RenderTexture.active = copyBuffer;
+        screenshot.ReadPixels( new Rect(0, 0, (int) (Screen.width * supersamplingFactor), (int) (Screen.height * supersamplingFactor)), 0, 0);
+        //screenshot.ReadPixels(new Rect(0, 0, (int)(Screen.width), (int)(Screen.height)), 0, 0);
 
-		//screenshot.Resize(Screen.width, Screen.height);
-		RenderTexture.active = null;
+        //screenshot.Resize(Screen.width, Screen.height);
+        RenderTexture.active = null;
 
 		byte[] bytes;
 		bytes = screenshot.EncodeToPNG();
