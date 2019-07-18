@@ -12,6 +12,8 @@ Camera can be rotated by holding down the right mouse button and panning.
 
 Can render spheres and boxes.
 
+You can run the WebGL version here: http://lghassen.github.io/pathtracer.html
+
 The following scenes are rendered in between 20-40 seconds on a GTX 1060 3GB:
 
 <p align="center"><img src="https://github.com/LGhassen/basic_pathtracer/blob/master/img/7.jpg" ></p>
