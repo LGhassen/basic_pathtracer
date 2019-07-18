@@ -26,6 +26,8 @@ public class Setup : MonoBehaviour {
 	[SerializeField]
 	Material PathTracerMaterial;
 
+	[SerializeField] bool displayGUI=true;
+
 	RenderTexture renderBuffer, copyBuffer;
 
 	// Use this for initialization
@@ -83,11 +85,13 @@ public class Setup : MonoBehaviour {
 
 	void OnGUI ()
 	{
-		windowRect = GUILayout.Window (windowId, windowRect, DrawWindow,"Basic pathtracer");
+		if (displayGUI) {
+			windowRect = GUILayout.Window (windowId, windowRect, DrawWindow, "Basic pathtracer");
 
-		//prevent window from going offscreen
-		windowRect.x = Mathf.Clamp(windowRect.x,0,Screen.width-windowRect.width);
-		windowRect.y = Mathf.Clamp(windowRect.y,0,Screen.height-windowRect.height);
+			//prevent window from going offscreen
+			windowRect.x = Mathf.Clamp (windowRect.x, 0, Screen.width - windowRect.width);
+			windowRect.y = Mathf.Clamp (windowRect.y, 0, Screen.height - windowRect.height);
+		}
 
 	}
 
