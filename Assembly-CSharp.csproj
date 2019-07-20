@@ -60,6 +60,7 @@
      <None Include="Assets\Shaders\CustomCornellBox.cginc" />
      <None Include="Assets\Shaders\ScreenSpaceQuad.shader" />
      <None Include="Assets\Shaders\CustomCornellBoxSimpleScene.cginc" />
+     <None Include="Assets\Shaders\Resolve.shader" />
  <Reference Include="UnityEditor.StandardEvents">
  <HintPath>E:/gh/newUnityProjs/basic_pathtracer/Library/ScriptAssemblies/UnityEditor.StandardEvents.dll</HintPath>
  </Reference>

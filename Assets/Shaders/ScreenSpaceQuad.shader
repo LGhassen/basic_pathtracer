@@ -11,7 +11,8 @@ Shader "basic_raytracer/ScreenSpaceQuadPathTrace" {
     		//cull Front
     		Cull Off
 
-            Blend SrcAlpha OneMinusSrcAlpha //alpha blending
+            //Blend SrcAlpha OneMinusSrcAlpha //alpha blending
+            Blend One One //additive
 
             CGPROGRAM
             #pragma vertex vert
@@ -332,10 +333,10 @@ Shader "basic_raytracer/ScreenSpaceQuadPathTrace" {
 
 				float2 uv = IN.uv;
 
-				float3 prevFrame = tex2D(_MainTex, uv);
-				col = (col + prevFrame * float(TotalFrames) ) / float(TotalFrames + 1);
+//				float3 prevFrame = tex2D(_MainTex, uv);
+//				col = (col + prevFrame * float(TotalFrames) ) / float(TotalFrames + 1);
 
-				return float4(col,1.0);
+				return float4(col*255,1.0);
 
             }
             ENDCG

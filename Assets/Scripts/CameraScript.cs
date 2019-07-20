@@ -4,10 +4,10 @@ using UnityEngine;
 
 public class CameraScript : MonoBehaviour {
 
-	public Material PathTracerMaterial;
+	public Material PathTracerMaterial, ResolveMaterial;
 	public RenderTexture renderBuffer, copyBuffer;
 
-	public int totalFrames=0;
+	public int totalFrames=1;
 
 	public Camera mainCamera;
 
@@ -17,6 +17,9 @@ public class CameraScript : MonoBehaviour {
 
 	private float yaw = 40.0f;
 	private float pitch = 0.0f;
+
+	private float yawDelta=0f;
+	private float pitchDelta=0f;
 
 	public int inputSamples = 0;
 	public int currentSamples = 0;
@@ -34,12 +37,27 @@ public class CameraScript : MonoBehaviour {
 		aparentTransform.eulerAngles = new Vector3(pitch, yaw, 0.0f);
 	}
 
+	public void ClearRenderBuffer()
+	{
+		RenderTexture rt=RenderTexture.active;
+		RenderTexture.active= renderBuffer;			
+		GL.Clear(false,true,Color.black);
+		RenderTexture.active=rt;	
+	}
+		
+
 	void OnPreCull()
 	{
 		if (Input.GetMouseButton (1))
 		{
-			yaw += speedH * Input.GetAxis ("Mouse X");
-			pitch -= speedV * Input.GetAxis ("Mouse Y");
+			
+			yawDelta = speedH * Input.GetAxis ("Mouse X");
+			pitchDelta = speedV * Input.GetAxis ("Mouse Y");
+
+			if ((yawDelta!= 0f) ||(pitchDelta!= 0f))
+			{
+				yaw += yawDelta;
+				pitch -= pitchDelta;
 
 			//quick hardcoded rotation limits
 //			yaw   = Mathf.Clamp (yaw  , 21.5f, 58.5f);
@@ -47,8 +65,9 @@ public class CameraScript : MonoBehaviour {
 
 			aparentTransform.eulerAngles = new Vector3(pitch, yaw, 0.0f);
 
-			totalFrames = 0;
-			currentSamples = 2;
+			totalFrames = 1;
+			ClearRenderBuffer ();
+			}
 		}
 		else
 		{
@@ -57,7 +76,7 @@ public class CameraScript : MonoBehaviour {
 
 
 		//update stuff
-		if (PathTracerMaterial)
+		if (PathTracerMaterial && ResolveMaterial)
 		{
 			Vector3 topLeft = mainCamera.ViewportPointToRay (new Vector3 (0f, 1f, 0f)).direction;
 			topLeft.Normalize ();
@@ -79,7 +98,7 @@ public class CameraScript : MonoBehaviour {
 			_frustumCorners.SetRow (3, topRight);	
 
 			PathTracerMaterial.SetMatrix ("FrustumCorners", _frustumCorners);
-			PathTracerMaterial.SetInt    ("TotalFrames", totalFrames);
+			ResolveMaterial.SetInt    ("TotalFrames", totalFrames);
 
 			PathTracerMaterial.SetInt ("SAMPLES", currentSamples);
 		}
@@ -122,10 +141,12 @@ public class CameraScript : MonoBehaviour {
 //		//////////////////////////////////////////////////////////////
 
 
-		PathTracerMaterial.SetTexture("_MainTex",copyBuffer);
+		//PathTracerMaterial.SetTexture("_MainTex",copyBuffer);
+
         Graphics.Blit (null,renderBuffer, PathTracerMaterial);
-        Graphics.Blit(renderBuffer, copyBuffer);
-        Graphics.Blit (renderBuffer,dest);
+//        Graphics.Blit(renderBuffer, copyBuffer);
+		ResolveMaterial.SetTexture("_MainTex",renderBuffer);
+		Graphics.Blit (renderBuffer,dest, ResolveMaterial);
 
         //Graphics.Blit(null, dest, PathTracerMaterial);
     }

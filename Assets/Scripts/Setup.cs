@@ -26,9 +26,12 @@ public class Setup : MonoBehaviour {
 	[SerializeField]
 	Material PathTracerMaterial;
 
+	[SerializeField]
+	Material ResolveMaterial;
+
 	[SerializeField] bool displayGUI=true;
 
-	RenderTexture renderBuffer, copyBuffer;
+	RenderTexture renderBuffer;//, copyBuffer;
 
 	// Use this for initialization
 	void Start ()
@@ -38,9 +41,9 @@ public class Setup : MonoBehaviour {
 			mainCamera.clearFlags = CameraClearFlags.Nothing;
 			//mainCamera.backgroundColor = Color.black;
 
-			if (PathTracerMaterial)
+			if (PathTracerMaterial && ResolveMaterial)
 			{
-				Debug.Log ("PathTracerMaterial found");
+				Debug.Log ("Materials found");
 				Vector2 _resolution = new Vector2(Screen.width, Screen.height);
 				PathTracerMaterial.SetVector ("Resolution", _resolution);
 				Debug.Log ("screen resolution: " + _resolution.ToString ());
@@ -49,7 +52,7 @@ public class Setup : MonoBehaviour {
                 PathTracerMaterial.SetFloat("SUPERSAMPLING_FACTOR", supersamplingFactor);
             }
 
-            renderBuffer = new RenderTexture ((int) (Screen.width * supersamplingFactor), (int) (Screen.height * supersamplingFactor) , 0, RenderTextureFormat.ARGB32);
+			renderBuffer = new RenderTexture ((int) (Screen.width * supersamplingFactor), (int) (Screen.height * supersamplingFactor) , 0, RenderTextureFormat.ARGBFloat);
             //renderBuffer = new RenderTexture((int)(Screen.width), (int)(Screen.height), 0, RenderTextureFormat.ARGB32);
             renderBuffer.anisoLevel = 0;
 			renderBuffer.autoGenerateMips = false;
@@ -58,22 +61,25 @@ public class Setup : MonoBehaviour {
 
 			renderBuffer.Create ();
 
-            copyBuffer = new RenderTexture ((int) (Screen.width * supersamplingFactor), (int) (Screen.height * supersamplingFactor), 0, RenderTextureFormat.ARGB32);
-            //copyBuffer = new RenderTexture((int)(Screen.width), (int)(Screen.height), 0, RenderTextureFormat.ARGB32);
-            copyBuffer.anisoLevel = 0;
-			copyBuffer.autoGenerateMips = false;
-			copyBuffer.filterMode = FilterMode.Trilinear;
-			copyBuffer.useMipMap = false;
-
-			copyBuffer.Create ();
+//            copyBuffer = new RenderTexture ((int) (Screen.width * supersamplingFactor), (int) (Screen.height * supersamplingFactor), 0, RenderTextureFormat.ARGB32);
+//            //copyBuffer = new RenderTexture((int)(Screen.width), (int)(Screen.height), 0, RenderTextureFormat.ARGB32);
+//            copyBuffer.anisoLevel = 0;
+//			copyBuffer.autoGenerateMips = false;
+//			copyBuffer.filterMode = FilterMode.Trilinear;
+//			copyBuffer.useMipMap = false;
+//
+//			copyBuffer.Create ();
 
 			cameraScript = (CameraScript) mainCamera.gameObject.AddComponent (typeof(CameraScript));
 			cameraScript.renderBuffer = renderBuffer;
-			cameraScript.copyBuffer   = copyBuffer;
+//			cameraScript.copyBuffer   = copyBuffer;
 			cameraScript.mainCamera   = mainCamera;
 			cameraScript.inputSamples = samples;
 
 			cameraScript.PathTracerMaterial = PathTracerMaterial;
+			cameraScript.ResolveMaterial = ResolveMaterial;
+
+			cameraScript.ClearRenderBuffer ();
 		}
 	}
 	
@@ -112,7 +118,11 @@ public class Setup : MonoBehaviour {
         Texture2D screenshot = new Texture2D((int) (Screen.width * supersamplingFactor), (int) (Screen.height * supersamplingFactor), TextureFormat.RGB24, false);
         //Texture2D screenshot = new Texture2D((int)(Screen.width), (int)(Screen.height), TextureFormat.RGB24, false);
 
-        RenderTexture.active = copyBuffer;
+		RenderTexture Rt = RenderTexture.GetTemporary ((int)(Screen.width * supersamplingFactor), (int)(Screen.height * supersamplingFactor), 0, RenderTextureFormat.ARGB32);
+		ResolveMaterial.SetTexture("_MainTex",renderBuffer);
+		Graphics.Blit (renderBuffer,Rt, ResolveMaterial);
+
+		RenderTexture.active = Rt;
         screenshot.ReadPixels( new Rect(0, 0, (int) (Screen.width * supersamplingFactor), (int) (Screen.height * supersamplingFactor)), 0, 0);
         //screenshot.ReadPixels(new Rect(0, 0, (int)(Screen.width), (int)(Screen.height)), 0, 0);
 
