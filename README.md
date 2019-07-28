@@ -1,6 +1,6 @@
 # basic_pathtracer
 
-An unbiased Monte Carlo pathtracer running on the GPU in unity. Inspired by smallpt, done as a learning project.
+An unbiased Monte Carlo pathtracer running on the GPU in unity. Inspired by [smallpt](https://drive.google.com/file/d/0B8g97JkuSSBwUENiWTJXeGtTOHFmSm51UC01YWtCZw/view), done as a learning project.
 
 All scene rendering is done in a shader, renderer is very fast compared to similar CPU pathtracers.
 
