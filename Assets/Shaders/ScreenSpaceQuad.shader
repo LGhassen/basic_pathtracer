@@ -1,91 +1,91 @@
 ﻿
 Shader "basic_raytracer/ScreenSpaceQuadPathTrace" {
 
-    SubShader {
-          Tags {"Queue" = "Transparent" "IgnoreProjector" = "True" "RenderType" = "Transparent"}
+	SubShader {
+		Tags {"Queue" = "Transparent" "IgnoreProjector" = "True" "RenderType" = "Transparent"}
 
-        Pass {
+		Pass {
 
-    		ZWrite Off
-    		ZTest Off
-    		//cull Front
-    		Cull Off
+			ZWrite Off
+			ZTest Off
+			//cull Front
+			Cull Off
 
-            //Blend SrcAlpha OneMinusSrcAlpha //alpha blending
-            Blend One One //additive
+			//Blend SrcAlpha OneMinusSrcAlpha //alpha blending
+			Blend One One //additive
 
-            CGPROGRAM
-            #pragma vertex vert
-            #pragma fragment frag
-            #pragma target 3.0
-            #include "UnityCG.cginc"
+			CGPROGRAM
+			#pragma vertex vert
+			#pragma fragment frag
+			#pragma target 3.0
+			#include "UnityCG.cginc"
 
-            #define PI 3.14159265359
+			#define PI 3.14159265359
 
-            #define DIFFUSE 0
-            #define MIRROR  1
-            #define GLASS   2
+			#define DIFFUSE 0
+			#define MIRROR  1
+			#define GLASS   2
 
 			#define SPHERE  0
-            #define BOX     1
+			#define BOX     1
 
-            uniform sampler2D _MainTex;
+			uniform sampler2D _MainTex;
 
-            uniform float MAX_DEPTH;
-            uniform float SAMPLES;
+			uniform float MAX_DEPTH;
+			uniform float SAMPLES;
 			uniform float SUPERSAMPLING_FACTOR;
-            uniform float TotalFrames;
-            uniform float2 Resolution;
+			uniform float TotalFrames;
+			uniform float2 Resolution;
 
 			float seed = 0;
 			float rand() { return frac(sin(seed++)*43758.5453123); }
 
-            uniform float4x4 FrustumCorners;
+			uniform float4x4 FrustumCorners;
 
-            struct v2f
-            {
-                float4 pos: SV_POSITION;
-                float2 uv: TEXCOORD0;
-                float3 view_dir:TEXCOORD1;
-            };
+			struct v2f
+			{
+				float4 pos: SV_POSITION;
+				float2 uv: TEXCOORD0;
+				float3 view_dir:TEXCOORD1;
+			};
 
 			v2f vert(appdata_base v)
 			{
-    			v2f OUT;
-    			OUT.pos = UnityObjectToClipPos(v.vertex);
-    			OUT.uv = v.texcoord;
-    			OUT.view_dir = FrustumCorners[(int) OUT.uv.x + 2*OUT.uv.y]; 	//interpolated from frustum corners world viewdir
-    			return OUT;
+				v2f OUT;
+				OUT.pos = UnityObjectToClipPos(v.vertex);
+				OUT.uv = v.texcoord;
+				OUT.view_dir = FrustumCorners[(int) OUT.uv.x + 2*OUT.uv.y]; 	//interpolated from frustum corners world viewdir
+				return OUT;
 			}
 
-            struct object
-            {
-            	float3 position;
-            	float dimension;  //radius if sphere, half-diameter if cube
-            	float3 color;
-            	float3 emission;
-            	float material;
-            	float type;        //sphere or cube
-            };
+			struct object
+			{
+				float3 position;
+				float dimension;  //radius if sphere, half-diameter if cube
+				float3 color;
+				float3 emission;
+				float material;
+				float type;        //sphere or cube
+			};
 
-            #include "CustomCornellBox.cginc"	//scene setup from include file
+			#include "CustomCornellBox.cginc"	//scene setup from include file
 
 			inline float intersectSphere(object iSphere, float3 rayDir, float3 rayOrigin)
 			{
-    			// The line passes through p1 and p2:
-    			// p3 is the sphere center
-    			float a = dot(rayDir, rayDir);
-    			float b = 2.0 * dot(rayDir, rayOrigin - iSphere.position);
-    			float c = dot(iSphere.position, iSphere.position) + dot(rayOrigin, rayOrigin) - (2.0 * dot(iSphere.position, rayOrigin)) - (iSphere.dimension * iSphere.dimension);
-    			float test = (b * b) - (4.0 * a * c);
+				// The line passes through p1 and p2:
+				// p3 is the sphere center
+				float a = dot(rayDir, rayDir);
+				float b = 2.0 * dot(rayDir, rayOrigin - iSphere.position);
+				float c = dot(iSphere.position, iSphere.position) + dot(rayOrigin, rayOrigin) - (2.0 * dot(iSphere.position, rayOrigin)) - (iSphere.dimension * iSphere.dimension);
+				float test = (b * b) - (4.0 * a * c);
 
-    			float u = (test < 0.0) ? -1.0 : (-b - sqrt(test)) / (2.0 * a);
-    			//if inside glass ball, epsilon test and take other value
-    			{
-    				u = (u <0.01 && iSphere.material == GLASS) ? (-b + sqrt(test)) / (2.0 * a) : u;
-    				u = (u <0.01 && iSphere.material == GLASS) ? -1.0 : u;
-    			}
-    			return u;
+				float u = (test < 0.0) ? -1.0 : (-b - sqrt(test)) / (2.0 * a);
+				//if inside glass ball, epsilon test and take other value
+				{
+					u = (u <0.01 && iSphere.material == GLASS) ? (-b + sqrt(test)) / (2.0 * a) : u;
+					u = (u <0.01 && iSphere.material == GLASS) ? -1.0 : u;
+				}
+				return u;
 			}
 
 			float intersectBox(object iBox, float3 rayDir, float3 rayOrigin)
@@ -99,38 +99,38 @@ Shader "basic_raytracer/ScreenSpaceQuadPathTrace" {
 				float3 bmin = float3(-1.0 * iBox.dimension,-1.0 * iBox.dimension,-1.0 * iBox.dimension);
 				float3 bmax = float3(1.0  * iBox.dimension, 1.0 * iBox.dimension, 1.0 * iBox.dimension);
 
-  				float tx1 = (bmin.x - rayOrigin.x)*n_inv.x;
-  				float tx2 = (bmax.x - rayOrigin.x)*n_inv.x;
+				float tx1 = (bmin.x - rayOrigin.x)*n_inv.x;
+				float tx2 = (bmax.x - rayOrigin.x)*n_inv.x;
 
-  				float tmin = min(tx1, tx2);
-  				float tmax = max(tx1, tx2);
+				float tmin = min(tx1, tx2);
+				float tmax = max(tx1, tx2);
 
-  				float ty1 = (bmin.y - rayOrigin.y)*n_inv.y;
-  				float ty2 = (bmax.y - rayOrigin.y)*n_inv.y;
+				float ty1 = (bmin.y - rayOrigin.y)*n_inv.y;
+				float ty2 = (bmax.y - rayOrigin.y)*n_inv.y;
 
-  				tmin = max(tmin, min(ty1, ty2));
-  				tmax = min(tmax, max(ty1, ty2));
+				tmin = max(tmin, min(ty1, ty2));
+				tmax = min(tmax, max(ty1, ty2));
 
-  				float tz1 = (bmin.z - rayOrigin.z)*n_inv.z;
-  				float tz2 = (bmax.z - rayOrigin.z)*n_inv.z;
+				float tz1 = (bmin.z - rayOrigin.z)*n_inv.z;
+				float tz2 = (bmax.z - rayOrigin.z)*n_inv.z;
 
-  				tmin = max(tmin, min(tz1, tz2));
-  				tmax = min(tmax, max(tz1, tz2));
+				tmin = max(tmin, min(tz1, tz2));
+				tmax = min(tmax, max(tz1, tz2));
 
-//  				if ( (tmax >= (tmin)) && (tmin < t))
-//  				{
-//  					if (tmin >= 0.1)
-//  						return tmin;
-//  					else if (tmax >= 0.1)
-//  						return tmax;
-//  					else
-//  						return -1.0;
-//					
-//  				}
-//  				else
-//  				{
-//  					return -1.0;
-//  				}
+				//  				if ( (tmax >= (tmin)) && (tmin < t))
+				//  				{
+				//  					if (tmin >= 0.1)
+				//  						return tmin;
+				//  					else if (tmax >= 0.1)
+				//  						return tmax;
+				//  					else
+				//  						return -1.0;
+				//					
+				//  				}
+				//  				else
+				//  				{
+				//  					return -1.0;
+				//  				}
 
 				if (tmin > 0.01 && tmin <t && tmax >=tmin)
 					return tmin;
@@ -156,8 +156,8 @@ Shader "basic_raytracer/ScreenSpaceQuadPathTrace" {
 						//if hit and closer than the previous hits
 						//in the case of glass allow self intersection check on next iteration (path inside glass object)
 						if ((hitDist > -1.0) && (hitDist <= minHitDist) && (i != lastHit  ||  objects[i].material == GLASS))
-						//if ((hitDist > -1.0))
-						//if ((hitDist > -1.0))
+							//if ((hitDist > -1.0))
+							//if ((hitDist > -1.0))
 						{
 							//if ((hitDist <= minHitDist) && (i != lastHit  ||  objects[i].material == GLASS))
 							//if ((hitDist <= minHitDist))// && (i != lastHit  ||  objects[i].material == GLASS))
@@ -170,31 +170,31 @@ Shader "basic_raytracer/ScreenSpaceQuadPathTrace" {
 						}
 					}
 					else		//BOXES
-					if (objects[i].type == BOX)
-					{
-						float hitDist = intersectBox(objects[i], rayDir, cameraPosition);
-
-						//if hit and closer than the previous hits
-						//in the case of glass allow self intersection check on next iteration (path inside glass object)
-						if ((hitDist > -1.0) && (hitDist <= minHitDist) && (i != lastHit  ||  objects[i].material == GLASS))
+						if (objects[i].type == BOX)
 						{
-							norm = (hitDist * rayDir + cameraPosition) - objects[i].position;
+							float hitDist = intersectBox(objects[i], rayDir, cameraPosition);
 
-							//quick norm
-							//TODO: optimize/improve
-							if ( (abs(norm.x) > abs(norm.y)) && (abs(norm.x) > abs(norm.z)) )
-								norm = float3(sign(norm.x) * 1.0 ,0.0,0.0);
+							//if hit and closer than the previous hits
+							//in the case of glass allow self intersection check on next iteration (path inside glass object)
+							if ((hitDist > -1.0) && (hitDist <= minHitDist) && (i != lastHit  ||  objects[i].material == GLASS))
+							{
+								norm = (hitDist * rayDir + cameraPosition) - objects[i].position;
 
-							else if ( (abs(norm.y) > abs(norm.x)) && (abs(norm.y) > abs(norm.z)) )
-								norm = float3(0.0, sign(norm.y) * 1.0 ,0.0);
+								//quick norm
+								//TODO: optimize/improve
+								if ( (abs(norm.x) > abs(norm.y)) && (abs(norm.x) > abs(norm.z)) )
+									norm = float3(sign(norm.x) * 1.0 ,0.0,0.0);
 
-							else if ( (abs(norm.z) > abs(norm.y)) && (abs(norm.z) > abs(norm.x)) )
-								norm = float3(0.0,0.0,sign(norm.z) * 1.0 );
+								else if ( (abs(norm.y) > abs(norm.x)) && (abs(norm.y) > abs(norm.z)) )
+									norm = float3(0.0, sign(norm.y) * 1.0 ,0.0);
 
-							minHitDist = hitDist;
-							objectHitIndex = i;
+								else if ( (abs(norm.z) > abs(norm.y)) && (abs(norm.z) > abs(norm.x)) )
+									norm = float3(0.0,0.0,sign(norm.z) * 1.0 );
+
+								minHitDist = hitDist;
+								objectHitIndex = i;
+							}
 						}
-}
 				}
 
 				return objectHitIndex;
@@ -233,7 +233,7 @@ Shader "basic_raytracer/ScreenSpaceQuadPathTrace" {
 					//if diffuse
 					if (objects[lastHit].material == DIFFUSE)
 					{
-#if defined (EXPLICIT_LIGHT_SAMPLING)
+						#if defined (EXPLICIT_LIGHT_SAMPLING)
 						//calculate solid angle towards lightsource
 						float3 vectorTolightSource = objects[LIGHTSOURCE_INDEX].position - hitPoint;
 						float cos_a_max = sqrt (1.0 - (objects[LIGHTSOURCE_INDEX].dimension * objects[LIGHTSOURCE_INDEX].dimension) / dot (vectorTolightSource,vectorTolightSource));
@@ -245,18 +245,18 @@ Shader "basic_raytracer/ScreenSpaceQuadPathTrace" {
 
 						if (intersect(randomLightDir, hitPoint, lastHit, lightNorm, lightHitDist) == LIGHTSOURCE_INDEX )
 						{
-							float omega = 2.0 * PI * (1.0 - cos_a_max);
-							finalColor += (objects[LIGHTSOURCE_INDEX].emission * clamp(dot(randomLightDir, norm),0.0,1.0) * omega) / PI * aggregateColor * objects[lastHit].color ;
+						float omega = 2.0 * PI * (1.0 - cos_a_max);
+						finalColor += (objects[LIGHTSOURCE_INDEX].emission * clamp(dot(randomLightDir, norm),0.0,1.0) * omega) / PI * aggregateColor * objects[lastHit].color ;
 						}
 
 						finalColor+= (objects[lastHit].emission) * aggregateColor * (float3(1.4,1.4,1.4) / objects[LIGHTSOURCE_INDEX].emission);
 						aggregateColor*=objects[lastHit].color;
 
-#else
+						#else
 						//our current sphere's color
 						finalColor+= (objects[lastHit].emission) * aggregateColor;
 						aggregateColor*=objects[lastHit].color;
-#endif
+						#endif
 
 						float r2 = rand();
 						float3 nl = norm * sign(-dot(norm, rayDir));
@@ -300,19 +300,19 @@ Shader "basic_raytracer/ScreenSpaceQuadPathTrace" {
 							else
 							{
 								finalColor+= (objects[lastHit].emission) * aggregateColor;
-							 	aggregateColor *= objects[lastHit].color*TP;
-							 	rayDir = tdir;
+								aggregateColor *= objects[lastHit].color*TP;
+								rayDir = tdir;
 							}
 						}
-}
+					}
 				}
 				return (finalColor);
 			}
 
 
 
-            float4 frag(v2f IN): COLOR
-            {
+			float4 frag(v2f IN): COLOR
+			{
 				float3 rayDir=normalize(IN.view_dir);
 
 				float2 pixelCoords = (IN.uv) * Resolution.yx;
@@ -333,13 +333,13 @@ Shader "basic_raytracer/ScreenSpaceQuadPathTrace" {
 
 				float2 uv = IN.uv;
 
-//				float3 prevFrame = tex2D(_MainTex, uv);
-//				col = (col + prevFrame * float(TotalFrames) ) / float(TotalFrames + 1);
+				//				float3 prevFrame = tex2D(_MainTex, uv);
+				//				col = (col + prevFrame * float(TotalFrames) ) / float(TotalFrames + 1);
 
 				return float4(col*255,1.0);
 
-            }
-            ENDCG
-        }
-    }
+			}
+			ENDCG
+		}
+	}
 }
